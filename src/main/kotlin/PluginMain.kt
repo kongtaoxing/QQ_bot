@@ -16,6 +16,11 @@ import net.mamoe.mirai.message.data.Image
 import net.mamoe.mirai.message.data.Image.Key.queryUrl
 import net.mamoe.mirai.message.data.PlainText
 import net.mamoe.mirai.utils.info
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.net.InetSocketAddress
+import java.net.Proxy
+
 
 /**
  * 使用 kotlin 版请把
@@ -32,17 +37,18 @@ import net.mamoe.mirai.utils.info
  * 不用复制到 mirai-console-loader 或其他启动器中调试
  */
 
+// 机器人基本信息
 object PluginMain : KotlinPlugin(
     JvmPluginDescription(
-        id = "org.example.mirai-example",
-        name = "插件示例",
+        id = "org.example.QQPriceBot",
+        name = "QQ报价机器人",
         version = "0.1.0"
     ) {
-        author("作者名称或联系方式")
+        author("涛行")
         info(
             """
-            这是一个测试插件, 
-            在这里描述插件的功能和用法等.
+            这是一个Mirai插件, 
+            用于QQ群中报价.
         """.trimIndent()
         )
         // author 和 info 可以删除.
@@ -54,44 +60,100 @@ object PluginMain : KotlinPlugin(
         val eventChannel = GlobalEventChannel.parentScope(this)
         eventChannel.subscribeAlways<GroupMessageEvent> {
             //群消息
-            //复读示例
-            if (message.contentToString().startsWith("复读")) {
-                group.sendMessage(message.contentToString().replace("复读", ""))
-            }
-            if (message.contentToString() == "hi") {
-                //群内发送
-                group.sendMessage("hi")
-                //向发送者私聊发送消息
-                sender.sendMessage("hi")
-                //不继续处理
-                return@subscribeAlways
-            }
-            //分类示例
-            message.forEach {
-                //循环每个元素在消息里
-                if (it is Image) {
-                    //如果消息这一部分是图片
-                    val url = it.queryUrl()
-                    group.sendMessage("图片，下载地址$url")
+            // //复读示例
+            // if (message.contentToString().startsWith("复读")) {
+            //     group.sendMessage(message.contentToString().replace("复读", ""))
+            // }
+
+            // 把复读示例转化为机器人命令指令
+            if (message.contentToString().startsWith("/")) {
+                var coin = message.contentToString().replace("/", "")
+
+                var proxyHost = "127.0.0.1"
+                var proxyPort = 7890
+                // var proxySelector = ProxySelector.getDefault()
+                var proxy = Proxy(Proxy.Type.HTTP, InetSocketAddress(proxyHost, proxyPort))
+                var client  = OkHttpClient().newBuilder()
+                    .proxy(proxy)
+                    .build()
+
+                var apiRequest = Request.Builder()
+                    .url("https://pro-api.coinmarketcap.com/v2/tools/price-conversion?symbol=" + coin + "&amount=1")
+                    .addHeader("Content-Type", "application/json")
+                    .addHeader("X-CMC_PRO_API_KEY", "522fcb01-b6db-465c-85d4-24586e6ba714")
+                    .build()
+
+                var msg = "请求出错"
+                client.newCall(apiRequest).execute().use { responce -> 
+                    if (responce.isSuccessful) {
+                        var responseBody = responce.body?.string()
+                        msg = responseBody ?: "请求出错"
+                    }
                 }
-                if (it is PlainText) {
-                    //如果消息这一部分是纯文本
-                    group.sendMessage("纯文本，内容:${it.content}")
-                }
+                group.sendMessage(msg)
             }
+
+            // if (message.contentToString() == "hi") {
+            //     //群内发送
+            //     group.sendMessage("hi")
+            //     //向发送者私聊发送消息
+            //     sender.sendMessage("hi")
+            //     //不继续处理
+            //     return@subscribeAlways
+            // }
+            // //分类示例
+            // message.forEach {
+            //     //循环每个元素在消息里
+            //     if (it is Image) {
+            //         //如果消息这一部分是图片
+            //         val url = it.queryUrl()
+            //         group.sendMessage("图片，下载地址$url")
+            //     }
+            //     if (it is PlainText) {
+            //         //如果消息这一部分是纯文本
+            //         group.sendMessage("纯文本，内容:${it.content}")
+            //     }
+            // }
         }
         eventChannel.subscribeAlways<FriendMessageEvent> {
             //好友信息
-            sender.sendMessage("hi")
+            if (message.contentToString().startsWith("/")) {
+                var coin = message.contentToString().replace("/", "")
+
+                var proxyHost = "127.0.0.1"
+                var proxyPort = 7890
+                // var proxySelector = ProxySelector.getDefault()
+                var proxy = Proxy(Proxy.Type.HTTP, InetSocketAddress(proxyHost, proxyPort))
+                var client  = OkHttpClient().newBuilder()
+                    .proxy(proxy)
+                    .build()
+
+                var apiRequest = Request.Builder()
+                    .url("https://pro-api.coinmarketcap.com/v2/tools/price-conversion?symbol=" + coin + "&amount=1")
+                    .addHeader("Content-Type", "application/json")
+                    .addHeader("X-CMC_PRO_API_KEY", "522fcb01-b6db-465c-85d4-24586e6ba714")
+                    .build()
+
+                var msg = "请求出错"
+                client.newCall(apiRequest).execute().use { responce -> 
+                    if (responce.isSuccessful) {
+                        var responseBody = responce.body?.string()
+                        msg = responseBody ?: "请求出错"
+                    }
+                }
+                sender.sendMessage(msg)
+            }
         }
-        eventChannel.subscribeAlways<NewFriendRequestEvent> {
-            //自动同意好友申请
-            accept()
-        }
-        eventChannel.subscribeAlways<BotInvitedJoinGroupRequestEvent> {
-            //自动同意加群申请
-            accept()
-        }
+
+        // 不允许添加好友，不允许拉群
+        // eventChannel.subscribeAlways<NewFriendRequestEvent> {
+        //     //自动同意好友申请
+        //     accept()
+        // }
+        // eventChannel.subscribeAlways<BotInvitedJoinGroupRequestEvent> {
+        //     //自动同意加群申请
+        //     accept()
+        // }
 
         myCustomPermission // 注册权限
     }
