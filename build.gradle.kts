@@ -19,5 +19,4 @@ repositories {
 dependencies {
     // 其他依赖项...
     implementation("com.squareup.okhttp3:okhttp:4.9.3")
-    implementation("io.github.cdimascio:dotenv-kotlin:3.1.0")
 }
