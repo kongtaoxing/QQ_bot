@@ -1,4 +1,4 @@
-package org.example.mirai.plugin
+package org.example.mirai.QQPriceBot
 
 import net.mamoe.mirai.console.permission.AbstractPermitteeId
 import net.mamoe.mirai.console.permission.PermissionService
