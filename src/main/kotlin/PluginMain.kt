@@ -20,6 +20,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.InetSocketAddress
 import java.net.Proxy
+import org.json.JSONArray
+import org.json.JSONObject
 
 
 /**
@@ -54,6 +56,60 @@ object PluginMain : KotlinPlugin(
         // author 和 info 可以删除.
     }
 ) {
+
+    // 获取币价函数
+    fun getPrice(coin: String): String {
+        var proxyHost = "127.0.0.1"
+        var proxyPort = 7890
+        // var proxySelector = ProxySelector.getDefault()
+        var proxy = Proxy(Proxy.Type.HTTP, InetSocketAddress(proxyHost, proxyPort))
+        var client  = OkHttpClient().newBuilder()
+            .proxy(proxy)
+            .build()
+
+        var apiRequest = Request.Builder()
+            .url("https://pro-api.coinmarketcap.com/v2/tools/price-conversion?symbol=" + coin + "&amount=1")
+            .addHeader("Content-Type", "application/json")
+            .addHeader("X-CMC_PRO_API_KEY", "522fcb01-b6db-465c-85d4-24586e6ba714")
+            .build()
+
+        var msg = "暂未收录"
+        client.newCall(apiRequest).execute().use { responce -> 
+            if (responce.isSuccessful) {
+                var responseBody = responce.body?.string()
+                var originalJson = responseBody?.replace("\\bnull\\b".toRegex(), "0")
+
+                var jsonObject = JSONObject(originalJson)
+                var dataArray = jsonObject.getJSONArray("data")
+
+                // var newArray = JSONArray()
+                var result = StringBuilder()
+                for (i in 0 until dataArray.length()) {
+                    var item = dataArray.getJSONObject(i)
+                    val symbol = item.getString("symbol")
+                    val name = item.getString("name")
+                    val price = item.getJSONObject("quote").getJSONObject("USD").getDouble("price")
+                    val formattedPrice = if (price == 0.0) "暂无" else price.toString()
+
+                    // val newItem = JSONObject()
+                    // newItem.put("符号", symbol ?: "没名字的土狗")
+                    // newItem.put("名称", name ?: "没名字的土狗")
+                    // newItem.put("价格", price ?: "暂无价格")
+
+                    // newArray.put(newItem)
+
+                    var line = "符号: $symbol, 名称: $name, 价格: $formattedPrice"
+                    result.append(line).append("\n")
+                }
+
+                // var newJson = newArray.toString()
+
+                msg = result.toString()
+            }
+        }
+        return msg;
+    }
+
     override fun onEnable() {
         logger.info { "Plugin loaded" }
         //配置文件目录 "${dataFolder.absolutePath}/"
@@ -69,28 +125,8 @@ object PluginMain : KotlinPlugin(
             if (message.contentToString().startsWith("/")) {
                 var coin = message.contentToString().replace("/", "")
 
-                var proxyHost = "127.0.0.1"
-                var proxyPort = 7890
-                // var proxySelector = ProxySelector.getDefault()
-                var proxy = Proxy(Proxy.Type.HTTP, InetSocketAddress(proxyHost, proxyPort))
-                var client  = OkHttpClient().newBuilder()
-                    .proxy(proxy)
-                    .build()
-
-                var apiRequest = Request.Builder()
-                    .url("https://pro-api.coinmarketcap.com/v2/tools/price-conversion?symbol=" + coin + "&amount=1")
-                    .addHeader("Content-Type", "application/json")
-                    .addHeader("X-CMC_PRO_API_KEY", "522fcb01-b6db-465c-85d4-24586e6ba714")
-                    .build()
-
-                var msg = "请求出错"
-                client.newCall(apiRequest).execute().use { responce -> 
-                    if (responce.isSuccessful) {
-                        var responseBody = responce.body?.string()
-                        msg = responseBody ?: "请求出错"
-                    }
-                }
-                group.sendMessage(msg)
+                
+                group.sendMessage(getPrice(coin))
             }
 
             // if (message.contentToString() == "hi") {
@@ -120,28 +156,8 @@ object PluginMain : KotlinPlugin(
             if (message.contentToString().startsWith("/")) {
                 var coin = message.contentToString().replace("/", "")
 
-                var proxyHost = "127.0.0.1"
-                var proxyPort = 7890
-                // var proxySelector = ProxySelector.getDefault()
-                var proxy = Proxy(Proxy.Type.HTTP, InetSocketAddress(proxyHost, proxyPort))
-                var client  = OkHttpClient().newBuilder()
-                    .proxy(proxy)
-                    .build()
-
-                var apiRequest = Request.Builder()
-                    .url("https://pro-api.coinmarketcap.com/v2/tools/price-conversion?symbol=" + coin + "&amount=1")
-                    .addHeader("Content-Type", "application/json")
-                    .addHeader("X-CMC_PRO_API_KEY", "522fcb01-b6db-465c-85d4-24586e6ba714")
-                    .build()
-
-                var msg = "请求出错"
-                client.newCall(apiRequest).execute().use { responce -> 
-                    if (responce.isSuccessful) {
-                        var responseBody = responce.body?.string()
-                        msg = responseBody ?: "请求出错"
-                    }
-                }
-                sender.sendMessage(msg)
+                
+                sender.sendMessage(getPrice(coin))
             }
         }
 
