@@ -7,6 +7,7 @@ import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.contact.Member
 import net.mamoe.mirai.contact.User
+import net.mamoe.mirai.event.subscribeAlways
 import net.mamoe.mirai.event.GlobalEventChannel
 import net.mamoe.mirai.event.events.BotInvitedJoinGroupRequestEvent
 import net.mamoe.mirai.event.events.FriendMessageEvent
@@ -15,6 +16,7 @@ import net.mamoe.mirai.event.events.NewFriendRequestEvent
 import net.mamoe.mirai.message.data.Image
 import net.mamoe.mirai.message.data.Image.Key.queryUrl
 import net.mamoe.mirai.message.data.PlainText
+import net.mamoe.mirai.message.data.At
 import net.mamoe.mirai.utils.info
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -122,13 +124,20 @@ object PluginMain : KotlinPlugin(
             // }
 
             // 把复读示例转化为机器人命令指令
-            if (message.contentToString().startsWith("/")) {
-                var coin = message.contentToString().replace("/", "")
+            if (message.contentToString().startsWith("[mirai:at:${bot.id}] ")) {
+                if (message.contentToString().startsWith("[mirai:at:3545524709] /")) {
+                    var coin = message.contentToString().replace("[mirai:at:3545524709] /", "")
 
-                
-                group.sendMessage(getPrice(coin))
+                    
+                    group.sendMessage(getPrice(coin))
+                }
+                else if (message.contentToString().startsWith("[mirai:at:3545524709] 帮助")) {
+                    group.sendMessage("基本指令：\n@${bot.nick} /币种 显示币种价格\n@${bot.nick} 帮助 显示帮助")
+                }
+                else {
+                    group.sendMessage("您好，请输入 @${bot.nick} 帮助 查看帮助。")
+                }
             }
-
             // if (message.contentToString() == "hi") {
             //     //群内发送
             //     group.sendMessage("hi")
@@ -138,6 +147,21 @@ object PluginMain : KotlinPlugin(
             //     return@subscribeAlways
             // }
             // //分类示例
+            message.forEach {
+                if (it is At && it.target == bot.id) {
+                    var text = message.subList(message.indexOf(it) + 1, message.size).joinToString("")
+                    if (text.startsWith("/")) {
+                        var coin = text.replace("/", "")
+                        group.sendMessage(getPrice(coin))
+                    }
+                    else if (text.isNotBlank()) {
+                        group.sendMessage(text)
+                    }
+                    else {
+                        group.sendMessage("请添加指令")
+                    }
+                }
+            }
             // message.forEach {
             //     //循环每个元素在消息里
             //     if (it is Image) {
