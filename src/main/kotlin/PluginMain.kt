@@ -59,6 +59,14 @@ object PluginMain : KotlinPlugin(
     }
 ) {
 
+    // 删除最后一个回车
+    fun removeLastChar(str: String): String {
+        if (str.isEmpty()) {
+            return str
+        }
+        return str.substring(0, str.length - 1)
+    }
+
     // 获取币价函数
     fun getPrice(coin: String): String {
         var proxyHost = "127.0.0.1"
@@ -109,7 +117,7 @@ object PluginMain : KotlinPlugin(
                 msg = result.toString()
             }
         }
-        return msg;
+        return removeLastChar(msg);
     }
 
     override fun onEnable() {
@@ -123,21 +131,21 @@ object PluginMain : KotlinPlugin(
             //     group.sendMessage(message.contentToString().replace("复读", ""))
             // }
 
-            // 把复读示例转化为机器人命令指令
-            if (message.contentToString().startsWith("[mirai:at:${bot.id}] ")) {
-                if (message.contentToString().startsWith("[mirai:at:3545524709] /")) {
-                    var coin = message.contentToString().replace("[mirai:at:3545524709] /", "")
+            // 这样也可以，但决定采取下面分类的方式
+            // if (message.contentToString().startsWith("[mirai:at:${bot.id}] ")) {
+            //     if (message.contentToString().startsWith("[mirai:at:3545524709] /")) {
+            //         var coin = message.contentToString().replace("[mirai:at:3545524709] /", "")
 
                     
-                    group.sendMessage(getPrice(coin))
-                }
-                else if (message.contentToString().startsWith("[mirai:at:3545524709] 帮助")) {
-                    group.sendMessage("基本指令：\n@${bot.nick} /币种 显示币种价格\n@${bot.nick} 帮助 显示帮助")
-                }
-                else {
-                    group.sendMessage("您好，请输入 @${bot.nick} 帮助 查看帮助。")
-                }
-            }
+            //         group.sendMessage(getPrice(coin))
+            //     }
+            //     else if (message.contentToString().startsWith("[mirai:at:3545524709] 帮助")) {
+            //         group.sendMessage("基本指令：\n@${bot.nick} /币种 显示币种价格\n@${bot.nick} 帮助 显示帮助")
+            //     }
+            //     else {
+            //         group.sendMessage("您好，请输入 @${bot.nick} 帮助 查看帮助。")
+            //     }
+            // }
             // if (message.contentToString() == "hi") {
             //     //群内发送
             //     group.sendMessage("hi")
@@ -146,22 +154,40 @@ object PluginMain : KotlinPlugin(
             //     //不继续处理
             //     return@subscribeAlways
             // }
-            // //分类示例
-            message.forEach {
-                if (it is At && it.target == bot.id) {
-                    var text = message.subList(message.indexOf(it) + 1, message.size).joinToString("")
-                    if (text.startsWith("/")) {
-                        var coin = text.replace("/", "")
-                        group.sendMessage(getPrice(coin))
-                    }
-                    else if (text.isNotBlank()) {
-                        group.sendMessage(text)
-                    }
-                    else {
-                        group.sendMessage("请添加指令")
+            var msgText = message.contentToString()
+                if (msgText.contains("ikun", ignoreCase = true) || msgText.contains("小黑子", ignoreCase = true)) {
+                    group.sendMessage("小黑子漏出鸡脚了！")
+                }
+                else if (msgText.contains("几种辣")) {
+                    group.sendMessage("世界上有三种辣，分别是微辣、中辣和泰裤辣！")
+                }
+                else if (msgText.contains("泰裤辣")) {
+                    group.sendMessage("泰裤辣！")
+                }
+                else {
+                    message.forEach {
+                        
+                        if (it is At && it.target == bot.id) {
+                            var text = message.contentToString().replace("@${bot.id}", "").trim()
+                            if (text.isNotBlank() ) {
+                                // group.sendMessage(text)
+                                if (text == "帮助") {
+                                    group.sendMessage("基本指令：\n@${bot.nick} /币种 显示币种价格\n@${bot.nick} 帮助 显示帮助")
+                                }
+                                else if (text.startsWith("/")){
+                                    var coin = text.replace("/", "")
+                                    group.sendMessage(getPrice(coin))
+                                }
+                                else {
+                                    group.sendMessage(text)
+                                }
+                            }
+                            else {
+                                group.sendMessage("请添加指令，如\"@${bot.nick} 帮助\"")
+                            }
+                        }
                     }
                 }
-            }
             // message.forEach {
             //     //循环每个元素在消息里
             //     if (it is Image) {
@@ -177,7 +203,17 @@ object PluginMain : KotlinPlugin(
         }
         eventChannel.subscribeAlways<FriendMessageEvent> {
             //好友信息
-            if (message.contentToString().startsWith("/")) {
+            var msgText = message.contentToString()
+            if (msgText.contains("ikun", ignoreCase = true) || msgText.contains("小黑子", ignoreCase = true)) {
+                sender.sendMessage("小黑子漏出鸡脚了！")
+            }
+            else if (msgText.contains("几种辣")) {
+                sender.sendMessage("世界上有三种辣，分别是微辣、中辣和泰裤辣！")
+            }
+            else if (msgText.contains("泰裤辣")) {
+                sender.sendMessage("泰裤辣！")
+            }
+            else if (msgText.startsWith("/")) {
                 var coin = message.contentToString().replace("/", "")
 
                 
