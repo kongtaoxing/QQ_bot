@@ -6,10 +6,10 @@
 
 
 ## 如何使用
-0. 本项目要求的环境为 `java jdk > 11`，并且有安装 `kotlinc` 和 `grable` 
+0. 本项目要求的环境为 `java jdk > 11`，并且有安装 `kotlinc` 和 `gradle` 
 1. 克隆本仓库
 2. 打开 `src/main/kotlin/PluginMain.kt` 并修改 `X-CMC_PRO_API_KEY`
-3. 在终端中使用 `./grablew buildPlugin` 命令编译插件
+3. 在终端中使用 `./gradlew buildPlugin` 命令编译插件
 4. 编译好的插件在 `build/mirai` 文件夹中，将其复制到 `mirai-console` 项目的 `plugins` 文件夹并启动机器人即可。
 
 ## Todo List
